@@ -1,0 +1,77 @@
+# Encryption of caesar cipher
+def caesar_cipher(text, shift):
+    result = ""
+    for char in text:
+        if char.isalpha():
+            start = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - start + shift) % 26 + start)
+        else:
+            result += char
+    return result
+text = input("Enter text: ")
+shift = int(input("Enter shift value: "))
+encrypted = caesar_cipher(text, shift)
+print("Original text:", text)
+print("Encrypted text:", encrypted)
+
+
+
+# Decryption of caesar cipher 
+def caesar_decrypt(text, shift):
+    result = ""
+    for char in text:
+        if char.isalpha():
+            start = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - start - shift) % 26 + start)
+        else:
+            result += char
+    return result
+text = input("Enter encrypted text: ")
+shift = int(input("Enter shift value: "))
+decrypted = caesar_decrypt(text, shift)
+print("Encrypted text:", text)
+print("Decrypted text:", decrypted)
+
+
+
+# Encryption of vigenere cipher
+def vigenere_cipher(text, key):
+    result = ""
+    key = key.upper()
+    i = 0
+    for char in text:
+        if char.isalpha():
+            shift = ord(key[i]) - ord('A')
+            start = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - start + shift) % 26 + start)
+            i = (i + 1) % len(key)
+        else:
+            result += char
+    return result
+text = input("Enter text: ")
+key = input("Enter key: ")
+encrypted = vigenere_cipher(text, key)
+
+print("Original text:", text)
+print("Encrypted text:", encrypted)
+
+# Decryption of vigenere cipher
+def vigenere_decrypt(text, key):
+    result = ""
+    key = key.upper()
+    i = 0
+    for char in text:
+        if char.isalpha():
+            shift = ord(key[i]) - ord('A')
+            start = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - start - shift) % 26 + start)
+            i = (i + 1) % len(key)
+        else:
+            result += char
+    return result
+
+text = input("Enter encrypted text: ")
+key = input("Enter key: ")
+decrypted = vigenere_decrypt(text, key)
+print("Encrypted text:", text)
+print("Decrypted text:", decrypted)
