@@ -1,0 +1,117 @@
+import subprocess
+import os
+import re
+from datetime import datetime, timezone
+
+key = "improved_private.key"
+cert = "improved_certificate.crt"
+subject = "/C=IN/ST=Jammu/L=Jammu/O=MIET/OU=CSE/CN=localhost"
+
+def run(cmd, data=None):
+    return subprocess.run(cmd, input=data, capture_output=True)
+
+def check(text, condition):
+    print("[PASS] " + text if condition else "[FAIL] " + text)
+
+for file in [key, cert]:
+    if os.path.exists(file):
+        os.remove(file)
+
+print("AUTOMATED X.509 CERTIFICATE GENERATION AND VERIFICATION\n")
+
+print("1. Generating 2048-bit RSA private key...")
+r = run(["openssl", "genpkey", "-algorithm", "RSA", "-out", key,
+         "-pkeyopt", "rsa_keygen_bits:2048"])
+check("RSA private key generated", r.returncode == 0 and os.path.exists(key))
+
+print("\n2. Checking private key...")
+r = run(["openssl", "pkey", "-in", key, "-check", "-noout"])
+check("Private key is valid",
+      r.returncode == 0 and b"Key is valid" in r.stdout)
+
+print("\n3. Generating self-signed X.509 certificate...")
+r = run(["openssl", "req", "-new", "-x509", "-sha256", "-key", key,
+         "-out", cert, "-days", "365", "-subj", subject,
+         "-addext", "subjectAltName=DNS:localhost,IP:127.0.0.1",
+         "-addext", "basicConstraints=critical,CA:FALSE",
+         "-addext", "keyUsage=critical,digitalSignature,keyEncipherment",
+         "-addext", "extendedKeyUsage=serverAuth"])
+
+check("Self-signed certificate generated",
+      r.returncode == 0 and os.path.exists(cert))
+
+print("\n4. Reading certificate information...")
+r = run(["openssl", "x509", "-in", cert, "-noout",
+         "-subject", "-issuer", "-dates", "-serial"])
+
+details = r.stdout.decode(errors="replace")
+
+print("\nCertificate details:")
+print("-" * 60)
+print(details.strip())
+print("-" * 60)
+
+s = re.search(r"subject=(.*)", details)
+i = re.search(r"issuer=(.*)", details)
+
+check("Subject and Issuer are the same",
+      s and i and s.group(1).strip() == i.group(1).strip())
+
+dates = re.findall(r"not(?:Before|After)=(.*)", details)
+valid = False
+
+if len(dates) == 2:
+    start = datetime.strptime(
+        dates[0].strip(), "%b %d %H:%M:%S %Y GMT"
+    ).replace(tzinfo=timezone.utc)
+
+    end = datetime.strptime(
+        dates[1].strip(), "%b %d %H:%M:%S %Y GMT"
+    ).replace(tzinfo=timezone.utc)
+
+    valid = start <= datetime.now(timezone.utc) <= end
+
+check("Certificate is currently within its validity period", valid)
+
+text = run(
+    ["openssl", "x509", "-in", cert, "-text", "-noout"]
+).stdout.decode(errors="replace")
+
+check("Required SAN values are present",
+      "DNS:localhost" in text and "IP Address:127.0.0.1" in text)
+
+check("Certificate has CA:FALSE", "CA:FALSE" in text)
+
+check("Required key usage is present",
+      "Digital Signature" in text and "Key Encipherment" in text)
+
+check("Server authentication usage is present",
+      "TLS Web Server Authentication" in text)
+
+print("\n5. Verifying certificate with explicit trust...")
+r = run(["openssl", "verify", "-CAfile", cert, cert])
+
+check("Certificate verification successful",
+      r.returncode == 0 and (cert + ": OK").encode() in r.stdout)
+
+print(r.stdout.decode(errors="replace").strip())
+
+print("\n6. Checking private key and certificate public key match...")
+
+r1 = run(["openssl", "pkey", "-in", key, "-pubout", "-outform", "DER"])
+r2 = run(["openssl", "x509", "-in", cert, "-pubkey", "-noout"])
+r3 = run(["openssl", "pkey", "-pubin", "-outform", "DER"], r2.stdout)
+
+h1 = run(["openssl", "dgst", "-sha256"], r1.stdout
+         ).stdout.decode(errors="replace").strip()
+
+h2 = run(["openssl", "dgst", "-sha256"], r3.stdout
+         ).stdout.decode(errors="replace").strip()
+
+check("Private key matches certificate public key", h1 == h2)
+
+print("Private key public-key hash:")
+print(h1)
+
+print("Certificate public-key hash:")
+print(h2)
