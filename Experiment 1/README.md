@@ -2,74 +2,60 @@
 
 ## Aim
 
-To implement and analyze Caesar Cipher and Vigenère Cipher in Python for encryption and decryption.
+To implement Caesar Cipher and Vigenère Cipher in Python for encryption and decryption.
 
 ## Methodology
 
 ### Caesar Cipher
 
-1. Take the plaintext, shift value, and shift direction as input.
-2. Convert each character into its ASCII value.
-3. Apply the shift using modulo 26.
-4. Preserve uppercase and lowercase characters.
-5. Preserve spaces and special characters.
-6. Reverse the shift during decryption.
+- Accept plaintext and shift value from the user.
+- Shift each alphabetic character using modulo 26.
+- Preserve uppercase and lowercase characters.
+- Preserve spaces and special characters.
+- Decrypt by applying the negative of the encryption shift.
 
 ### Vigenère Cipher
 
-1. Take the plaintext and key as input.
-2. Convert each key character into a numerical shift.
-3. Apply the repeating key to alphabetic characters.
-4. Increment the key index only when an alphabetic character is processed.
-5. Preserve spaces, special characters, and character case.
-6. Add the key shift during encryption and subtract it during decryption.
+- Accept plaintext and an alphabetic key.
+- Convert each key character into a shift value.
+- Repeat the key throughout the plaintext.
+- Apply the key only to alphabetic characters.
+- Preserve spaces, punctuation, and character case.
+- Subtract the same shifts during decryption.
 
 ## Features
 
 - Menu-driven interface
 - Caesar encryption and decryption
 - Vigenère encryption and decryption
-- User-defined shift and key
-- Left and right Caesar shifts
+- User-defined shift
+- User-defined key
 - Case preservation
-- Preservation of spaces and special characters
-- Correct Vigenère key alignment
+- Special-character preservation
+- Vigenère key alignment across spaces
 
 ## Results
 
+Both ciphers successfully performed encryption and decryption.
+
 | Cipher | Encryption | Decryption | Verification |
-|:------|:-----------|:-----------|:-------------|
+|--------|------------|------------|--------------|
 | Caesar | Successful | Successful | Passed |
 | Vigenère | Successful | Successful | Passed |
 
-The decrypted text matched the original plaintext for the tested cases.
+The decrypted text matched the original plaintext in the tested cases.
 
 ## Discussion
 
-Caesar Cipher uses a fixed shift, making it easy to brute-force. Vigenère uses multiple shifts and provides better pattern concealment, but its repeating-key structure remains vulnerable.
+Caesar Cipher uses a fixed shift and has a small key space, making it easy to brute-force.
+
+Vigenère Cipher uses multiple shifts through a repeating key, providing better protection against simple frequency analysis. However, the repeating-key pattern can still be exploited for longer messages.
 
 ## Improvements
 
 - Added a menu-driven interface.
-- Added runtime input for text, shift, direction, key, and operation.
-- Added support for both left and right Caesar shifts.
-- Preserved character case and special characters.
+- Added runtime input for plaintext, shift, and key.
+- Added automatic encryption and decryption verification.
+- Preserved uppercase and lowercase characters.
+- Preserved spaces and special characters.
 - Used a separate key index for correct Vigenère key alignment.
-
-## Sample Output
-
-### Caesar Cipher
-
-```text
-==== Cipher Menu ====
-1. Caesar Cipher
-2. Vigenere Cipher
-3. Exit
-
-Enter your choice: 1
-Enter the text: Hello Network Security
-Encrypt or Decrypt? (e/d): e
-Enter the shift number: 3
-Enter direction for shift: right
-
-Encrypted text: Khoor Qhwzrun Vhfxulwb
